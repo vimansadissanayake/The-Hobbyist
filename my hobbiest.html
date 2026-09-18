@@ -1,0 +1,2489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>The Hobbyist — Full App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F1EA;
+    --cream-2: #FAF7F1;
+    --cream-3: #EFE9DF;
+    --paper: #FBF8F3;
+    --divider: #E5DED1;
+
+    --ink: #2A2520;
+    --ink-2: #4A423A;
+    --ink-3: #8A7F72;
+    --ink-4: #B8AEA0;
+
+    --terracotta: #B76C7A;
+    --terracotta-deep: #9E5766;
+    --mustard: #D89B4A;
+    --sage: #3E6B5C;
+    --sage-deep: #2F5A4C;
+    --sage-soft: #D4E3DD;
+    --blue-slate: #6B8AA8;
+    --purple: #8B7FB8;
+    --lavender: #E5DFF0;
+    --rose: #D89B9B;
+
+    --shadow-card: 0 1px 2px rgba(42, 37, 32, 0.04), 0 4px 12px rgba(42, 37, 32, 0.06);
+    --shadow-lg: 0 4px 12px rgba(42, 37, 32, 0.06), 0 16px 40px rgba(42, 37, 32, 0.12);
+    --shadow-sheet: 0 -4px 24px rgba(42, 37, 32, 0.08);
+
+    --spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #D9D2C5;
+    color: var(--ink);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--cream);
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 10px #1A1613,
+      0 0 0 12px #2A2520,
+      0 60px 120px rgba(42, 37, 32, 0.35);
+    isolation: isolate;
+  }
+
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    z-index: 100;
+    pointer-events: none;
+  }
+  .status-bar .right { display: flex; gap: 5px; align-items: center; }
+  .status-bar .right svg { width: 17px; height: 11px; }
+
+  .notch {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 34px;
+    background: #1A1613;
+    border-radius: 20px;
+    z-index: 101;
+  }
+
+  /* ============================================================
+     SCREENS
+     ============================================================ */
+  .screen {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 66px 22px 120px;
+    scrollbar-width: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms var(--ease), transform 400ms var(--ease);
+    z-index: 1;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.active { opacity: 1; pointer-events: auto; }
+  .screen.exit-left { transform: translateX(-8%); opacity: 0; }
+
+  /* ============================================================
+     HUB
+     ============================================================ */
+  .hub-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .greeting {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .greeting-sub {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-top: 6px;
+    line-height: 1.4;
+    max-width: 220px;
+  }
+  .avatar-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    font-style: italic;
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(183, 108, 122, 0.3);
+    transition: transform 200ms var(--spring);
+    position: relative;
+  }
+  .avatar-btn:active { transform: scale(0.94); }
+  .avatar-btn .notif-dot {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--mustard);
+    border: 2px solid var(--cream);
+  }
+
+  .filter-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: var(--sage-soft);
+    color: var(--sage-deep);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 14px 18px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 28px;
+    font-family: inherit;
+    transition: transform 200ms var(--ease);
+  }
+  .filter-pill:active { transform: scale(0.98); }
+  .filter-pill .left { display: flex; align-items: center; gap: 10px; }
+  .filter-pill .bolt { font-size: 14px; }
+
+  .section-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 22px 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    letter-spacing: -0.01em;
+  }
+  .section-label .count {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+  }
+
+  .hobby-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .hobby-card {
+    height: 130px;
+    border-radius: 24px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 280ms var(--spring), box-shadow 280ms var(--ease), opacity 280ms;
+    box-shadow: var(--shadow-card);
+    user-select: none;
+  }
+  .hobby-card:active { transform: scale(0.98); }
+  .hobby-card .name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+  }
+  .hobby-card .meta {
+    font-size: 13px;
+    opacity: 0.92;
+    line-height: 1.3;
+    position: relative;
+    z-index: 1;
+  }
+  .hobby-card .badge {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 1;
+  }
+  .hobby-card.dimmed { opacity: 0.25; filter: saturate(0.5); }
+  .hobby-card.glow { box-shadow: 0 0 0 2px var(--sage), 0 8px 24px rgba(62, 107, 92, 0.35); }
+
+  .slow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .slow-card {
+    height: 100px;
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+    cursor: pointer;
+    transition: transform 280ms var(--spring);
+    box-shadow: var(--shadow-card);
+  }
+  .slow-card:active { transform: scale(0.97); }
+  .slow-card .name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 400;
+  }
+  .slow-card .meta { font-size: 11px; opacity: 0.9; }
+
+  .backburner-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    scrollbar-width: none;
+    margin: 0 -2px;
+  }
+  .backburner-row::-webkit-scrollbar { display: none; }
+  .backburner-chip {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    background: var(--paper);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    border: 1px solid var(--divider);
+    transition: transform 200ms var(--ease);
+  }
+  .backburner-chip:active { transform: scale(0.96); }
+
+  .fab {
+    position: absolute;
+    bottom: 34px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--sage);
+    color: white;
+    border: none;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(62, 107, 92, 0.35), 0 12px 32px rgba(62, 107, 92, 0.25);
+    z-index: 90;
+    transition: transform 240ms var(--spring);
+    font-family: inherit;
+    line-height: 0;
+    padding-bottom: 3px;
+  }
+  .fab:active { transform: scale(0.92); }
+
+  /* ============================================================
+     CANVAS
+     ============================================================ */
+  .canvas-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .back-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--ink);
+    transition: transform 200ms var(--ease);
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .back-btn:active { transform: scale(0.94); }
+  .canvas-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .canvas-header .right-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .icon-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--ink-2);
+    transition: transform 200ms var(--ease);
+    font-family: inherit;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+
+  .next-step-card {
+    background: var(--terracotta);
+    border-radius: 24px;
+    padding: 22px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(183, 108, 122, 0.25);
+    margin-bottom: 28px;
+  }
+  .next-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 10px;
+  }
+  .next-step-text {
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 500;
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+  .btn-done {
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 11px 22px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 200ms var(--ease);
+    font-family: inherit;
+  }
+  .btn-done:active { transform: scale(0.96); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    margin-top: 4px;
+  }
+  .section-header .label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .section-header .add {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--ink-3);
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 200ms var(--ease);
+    font-family: inherit;
+    line-height: 0;
+    padding-bottom: 2px;
+  }
+  .section-header .add:hover { background: var(--cream-3); color: var(--ink); }
+
+  .inspiration-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .inspo-tile {
+    aspect-ratio: 1;
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 240ms var(--spring);
+    box-shadow: var(--shadow-card);
+  }
+  .inspo-tile:active { transform: scale(0.95); }
+  .inspo-tile .tag {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(42, 37, 32, 0.75);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    z-index: 2;
+  }
+  .inspo-tile.add-tile {
+    background: transparent;
+    border: 1.5px dashed var(--ink-4);
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--ink-3);
+    font-weight: 300;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 26px;
+    margin-bottom: 20px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 8px; bottom: 8px;
+    width: 1.5px;
+    background: var(--divider);
+    border-radius: 2px;
+  }
+  .milestone {
+    position: relative;
+    padding-bottom: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: transform 200ms var(--ease);
+  }
+  .milestone:active { transform: translateX(2px); }
+  .milestone::before {
+    content: '';
+    position: absolute;
+    left: -26px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--sage);
+    border: 2px solid var(--cream);
+    box-shadow: 0 0 0 1px var(--sage);
+    transition: all 320ms var(--spring);
+  }
+  .milestone.saved::before {
+    background: var(--sage-deep);
+    transform: scale(1.4);
+    box-shadow: 0 0 0 4px rgba(62, 107, 92, 0.25);
+  }
+  .milestone .thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-card);
+  }
+  .milestone .info { flex: 1; padding-top: 2px; }
+  .milestone-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .milestone-date {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+
+  /* Empty state */
+  .empty-hero {
+    border: 1.5px dashed var(--ink-4);
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 32px;
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .empty-hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+  .empty-hero-text {
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin-bottom: 20px;
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .btn-soft {
+    background: var(--purple);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 200ms var(--ease);
+    box-shadow: 0 4px 12px rgba(139, 127, 184, 0.3);
+  }
+  .btn-soft:active { transform: scale(0.96); }
+
+  .empty-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .empty-tile {
+    aspect-ratio: 1;
+    border-radius: 18px;
+    border: 1.5px dashed var(--ink-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--ink-4);
+    cursor: pointer;
+  }
+  .empty-tile:active { background: var(--cream-3); }
+
+  .empty-milestone-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink-3);
+    padding: 8px 0;
+  }
+
+  /* ============================================================
+     PROFILE SCREEN
+     ============================================================ */
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--terracotta);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Serif', serif;
+    font-size: 42px;
+    font-style: italic;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(183, 108, 122, 0.35);
+    position: relative;
+  }
+  .profile-avatar .edit-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .profile-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .profile-joined {
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    border-radius: 20px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--paper);
+    border-radius: 20px;
+    border: 1px solid var(--divider);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: background 200ms var(--ease);
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid var(--divider);
+    color: var(--ink);
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:hover { background: var(--cream-3); }
+  .menu-item .ico {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--cream-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .menu-item .txt { flex: 1; }
+  .menu-item .txt .title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .menu-item .txt .sub {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+  .menu-item .chev {
+    color: var(--ink-4);
+    font-size: 16px;
+  }
+
+  /* ============================================================
+     SETTINGS
+     ============================================================ */
+  .settings-section {
+    margin-bottom: 24px;
+  }
+  .settings-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .settings-list {
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item .label { font-size: 14px; color: var(--ink); font-weight: 500; }
+  .settings-item .sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .settings-item .left { flex: 1; }
+
+  .toggle {
+    width: 46px;
+    height: 28px;
+    border-radius: 100px;
+    background: var(--divider);
+    position: relative;
+    cursor: pointer;
+    transition: background 240ms var(--ease);
+    border: none;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: transform 240ms var(--spring);
+  }
+  .toggle.on { background: var(--sage); }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* ============================================================
+     MILESTONE DETAIL
+     ============================================================ */
+  .milestone-detail-hero {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+  }
+  .milestone-detail-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .milestone-detail-date {
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .milestone-detail-date .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ink-4);
+  }
+  .milestone-detail-notes {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    margin-bottom: 28px;
+  }
+  .milestone-detail-notes em { font-family: 'Instrument Serif', serif; }
+  .tag-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .tag-chip {
+    padding: 8px 14px;
+    border-radius: 100px;
+    background: var(--cream-3);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 100px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 200ms var(--ease);
+  }
+  .action-btn:active { transform: scale(0.97); }
+
+  /* ============================================================
+     ADD MILESTONE
+     ============================================================ */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    font-size: 14px;
+    color: var(--ink);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 200ms var(--ease);
+  }
+  .form-input:focus { border-color: var(--sage); }
+  .form-input::placeholder { color: var(--ink-4); }
+  textarea.form-input { min-height: 100px; resize: none; line-height: 1.5; }
+
+  .photo-drop {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 20px;
+    border: 1.5px dashed var(--ink-4);
+    background: rgba(255,255,255,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 200ms var(--ease);
+  }
+  .photo-drop:active { background: var(--cream-3); }
+  .photo-drop .ico { font-size: 28px; color: var(--ink-3); }
+  .photo-drop .txt { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+
+  .emoji-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .emoji-choice {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: var(--paper);
+    border: 1.5px solid var(--divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 200ms var(--ease);
+    font-family: inherit;
+  }
+  .emoji-choice:active { transform: scale(0.94); }
+  .emoji-choice.selected {
+    background: var(--sage-soft);
+    border-color: var(--sage);
+  }
+
+  .color-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .color-choice {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 200ms var(--spring);
+    position: relative;
+  }
+  .color-choice:active { transform: scale(0.9); }
+  .color-choice.selected {
+    border-color: var(--ink);
+    transform: scale(1.05);
+  }
+  .color-choice.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  /* ============================================================
+     NOTIFICATIONS
+     ============================================================ */
+  .notif-item {
+    display: flex;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    border-radius: 20px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 200ms var(--ease);
+  }
+  .notif-item:active { transform: scale(0.98); }
+  .notif-item.unread { background: #FBF5E8; border-color: #E8DCC0; }
+  .notif-icon {
+    width: 40px; height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .notif-body { flex: 1; }
+  .notif-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 3px;
+    line-height: 1.3;
+  }
+  .notif-text {
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .notif-time {
+    font-size: 11px;
+    color: var(--ink-4);
+    margin-top: 6px;
+  }
+
+  /* ============================================================
+     SEARCH
+     ============================================================ */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    border-radius: 100px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+  }
+  .search-bar input::placeholder { color: var(--ink-4); }
+  .search-bar .ico { font-size: 16px; color: var(--ink-3); }
+
+  .search-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+    scrollbar-width: none;
+  }
+  .search-chips::-webkit-scrollbar { display: none; }
+  .search-chip {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    border-radius: 100px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 200ms var(--ease);
+  }
+  .search-chip:active { transform: scale(0.96); }
+  .search-chip.active {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+
+  /* ============================================================
+     ONBOARDING
+     ============================================================ */
+  .onboard-step {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 40px);
+    padding-top: 40px;
+  }
+  .onboard-visual {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+  .onboard-orb {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--terracotta), var(--mustard));
+    box-shadow: 0 20px 60px rgba(183, 108, 122, 0.35);
+    animation: floatOrb 4s ease-in-out infinite;
+  }
+  @keyframes floatOrb {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-12px) scale(1.03); }
+  }
+  .onboard-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .onboard-text {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-3);
+    margin-bottom: 30px;
+  }
+  .onboard-dots {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .onboard-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--divider);
+    transition: all 240ms var(--ease);
+  }
+  .onboard-dot.active {
+    width: 24px;
+    background: var(--sage);
+    border-radius: 100px;
+  }
+
+  /* ============================================================
+     SHEETS
+     ============================================================ */
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(42, 37, 32, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms var(--ease);
+    z-index: 200;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: var(--cream-2);
+    border-radius: 32px 32px 0 0;
+    padding: 20px 24px 28px;
+    transform: translateY(100%);
+    transition: transform 420ms var(--spring);
+    z-index: 300;
+    max-height: 90%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    box-shadow: var(--shadow-sheet);
+  }
+  .sheet::-webkit-scrollbar { display: none; }
+  .sheet.show { transform: translateY(0); }
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--ink-4);
+    border-radius: 4px;
+    margin: 0 auto 22px;
+    opacity: 0.5;
+  }
+  .sheet-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .filter-group { margin-bottom: 22px; }
+  .filter-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    padding: 11px 20px;
+    border-radius: 100px;
+    background: transparent;
+    color: var(--ink-2);
+    border: 1.5px solid var(--divider);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 200ms var(--ease);
+  }
+  .pill:active { transform: scale(0.96); }
+  .pill.selected {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+
+  .fit-count {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .fit-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+  .fit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: var(--cream);
+    border: 1px solid var(--divider);
+    border-radius: 100px;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: background 200ms var(--ease);
+    width: 100%;
+  }
+  .fit-item:active { background: var(--cream-3); }
+  .fit-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 17px;
+    border-radius: 100px;
+    background: var(--sage);
+    color: white;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 200ms var(--ease);
+    box-shadow: 0 4px 12px rgba(62, 107, 92, 0.25);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--sage-deep); }
+  .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+  .capture-types {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .capture-type {
+    background: var(--cream);
+    border: 1.5px solid var(--divider);
+    border-radius: 20px;
+    padding: 18px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    transition: all 200ms var(--ease);
+  }
+  .capture-type:active { transform: scale(0.96); }
+  .capture-type.selected {
+    background: var(--sage-soft);
+    border-color: var(--sage);
+    color: var(--sage-deep);
+  }
+  .capture-type .ico { font-size: 20px; }
+  .capture-type .lbl { font-size: 12px; font-weight: 500; }
+
+  .capture-input {
+    width: 100%;
+    padding: 18px;
+    border-radius: 20px;
+    background: var(--cream);
+    border: 1px solid var(--divider);
+    font-size: 14px;
+    color: var(--ink);
+    font-family: inherit;
+    margin-bottom: 20px;
+    outline: none;
+    resize: none;
+    min-height: 100px;
+    line-height: 1.5;
+    transition: border-color 200ms var(--ease);
+  }
+  .capture-input:focus { border-color: var(--sage); }
+  .capture-input::placeholder { color: var(--ink-4); }
+
+  .save-to-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .save-to-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .save-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 100px;
+    background: transparent;
+    border: 1.5px solid var(--divider);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 200ms var(--ease);
+  }
+  .save-chip:active { transform: scale(0.96); }
+  .save-chip.selected {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+  .save-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  .toast {
+    position: absolute;
+    bottom: 30px;
+    left: 20px; right: 20px;
+    background: var(--paper);
+    border-radius: 20px;
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    box-shadow: 0 8px 32px rgba(42, 37, 32, 0.18), 0 2px 8px rgba(42, 37, 32, 0.08);
+    transform: translateY(30px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 320ms var(--spring);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .toast::before {
+    content: '✓';
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--sage-soft);
+    color: var(--sage-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .toast .undo {
+    margin-left: auto;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+  .filter-banner {
+    position: absolute;
+    top: 60px;
+    left: 20px; right: 20px;
+    background: var(--paper);
+    border: 1px solid var(--divider);
+    border-radius: 16px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    transform: translateY(-20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 280ms var(--spring);
+    z-index: 95;
+    box-shadow: var(--shadow-card);
+  }
+  .filter-banner.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .filter-banner button {
+    background: transparent;
+    border: none;
+    color: var(--sage);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ============================================================
+     BOTTOM TAB BAR
+     ============================================================ */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    background: rgba(250, 247, 241, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--divider);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 12px 22px;
+    z-index: 80;
+    transition: transform 300ms var(--ease);
+  }
+  .tab-bar.hidden { transform: translateY(100%); }
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink-3);
+    padding: 6px;
+    border-radius: 12px;
+    transition: color 200ms var(--ease);
+  }
+  .tab-item .ico { font-size: 20px; line-height: 1; }
+  .tab-item .lbl { font-size: 10px; font-weight: 500; letter-spacing: 0.02em; }
+  .tab-item.active { color: var(--sage-deep); }
+  .tab-item.active .ico { transform: scale(1.1); }
+
+  .hint {
+    position: absolute;
+    bottom: 8px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+    pointer-events: none;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="right">
+      <svg viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="6" width="3" height="5" rx="1"/><rect x="4.5" y="4" width="3" height="7" rx="1"/><rect x="9" y="2" width="3" height="9" rx="1"/><rect x="13.5" y="0" width="2.5" height="11" rx="1"/></svg>
+    </span>
+  </div>
+
+  <!-- ============ ONBOARDING ============ -->
+  <div class="screen" id="screen-onboard">
+    <div class="onboard-step">
+      <div class="onboard-visual">
+        <div class="onboard-orb"></div>
+      </div>
+      <div class="onboard-dots">
+        <span class="onboard-dot active" id="dot-0"></span>
+        <span class="onboard-dot" id="dot-1"></span>
+        <span class="onboard-dot" id="dot-2"></span>
+      </div>
+      <div class="onboard-title" id="onboardTitle">A sandbox for your many interests</div>
+      <div class="onboard-text" id="onboardText">Collect inspiration, capture progress, and choose what fits your energy — never a deadline in sight.</div>
+      <button class="btn-primary" id="onboardBtn" onclick="nextOnboard()">Continue</button>
+    </div>
+  </div>
+
+  <!-- ============ HUB ============ -->
+  <div class="screen active" id="screen-hub">
+    <div class="hub-header">
+      <div>
+        <div class="greeting">Good afternoon, Maya</div>
+        <div class="greeting-sub">What are you curious about today?</div>
+      </div>
+      <button class="avatar-btn" onclick="goTo('profile')">
+        M
+        <span class="notif-dot"></span>
+      </button>
+    </div>
+
+    <button class="filter-pill" onclick="openFilter()">
+      <div class="left">
+        <span class="bolt">⚡</span>
+        <span>Find something that fits</span>
+      </div>
+      <span>›</span>
+    </button>
+
+    <div class="section-label">Active Passions <span class="count" id="activeCount">2</span></div>
+    <div class="hobby-list" id="activeList"></div>
+
+    <div class="section-label">Slow Burners <span class="count" id="slowCount">2</span></div>
+    <div class="slow-grid" id="slowList"></div>
+
+    <div class="section-label">Someday Sandbox <span class="count" id="backCount">2</span></div>
+    <div class="backburner-row" id="backList"></div>
+  </div>
+
+  <!-- ============ CANVAS ============ -->
+  <div class="screen" id="screen-canvas">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('hub')">‹</button>
+      <div class="canvas-title" id="canvasTitle">Oil Painting</div>
+      <div class="right-actions">
+        <button class="icon-btn" onclick="openCapture()">+</button>
+        <button class="icon-btn" onclick="editCurrentHobby()">✎</button>
+      </div>
+    </div>
+    <div id="canvasBody"></div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="screen" id="screen-profile">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('hub')">‹</button>
+      <div class="canvas-title">Profile</div>
+      <div class="right-actions">
+        <button class="icon-btn" onclick="goTo('settings')">⚙</button>
+      </div>
+    </div>
+
+    <div class="profile-header">
+      <div class="profile-avatar">
+        M
+        <button class="edit-badge" onclick="editProfile()">✎</button>
+      </div>
+      <div class="profile-name">Maya Chen</div>
+      <div class="profile-joined">Exploring since March 2024</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">6</div>
+        <div class="stat-label">Hobbies</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">28</div>
+        <div class="stat-label">Moments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Milestones</div>
+      </div>
+    </div>
+
+    <div class="settings-section-title">Your space</div>
+    <div class="menu-list">
+      <button class="menu-item" onclick="goTo('milestones')">
+        <div class="ico">🏆</div>
+        <div class="txt">
+          <div class="title">All milestones</div>
+          <div class="sub">Your moments across every hobby</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+      <button class="menu-item" onclick="goTo('notifications')">
+        <div class="ico">🔔</div>
+        <div class="txt">
+          <div class="title">Activity</div>
+          <div class="sub">Recent updates and gentle nudges</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+      <button class="menu-item" onclick="goTo('search')">
+        <div class="ico">🔍</div>
+        <div class="txt">
+          <div class="title">Search</div>
+          <div class="sub">Find any inspiration or moment</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+    </div>
+
+    <div class="settings-section-title">Preferences</div>
+    <div class="menu-list">
+      <button class="menu-item" onclick="goTo('settings')">
+        <div class="ico">⚙️</div>
+        <div class="txt">
+          <div class="title">Settings</div>
+          <div class="sub">Theme, motion, notifications</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+      <button class="menu-item" onclick="showToast('Export started')">
+        <div class="ico">📤</div>
+        <div class="txt">
+          <div class="title">Export my data</div>
+          <div class="sub">Download everything as a file</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+      <button class="menu-item" onclick="showToast('Signed out')">
+        <div class="ico">↩️</div>
+        <div class="txt">
+          <div class="title">Sign out</div>
+          <div class="sub">See you soon, Maya</div>
+        </div>
+        <span class="chev">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="screen" id="screen-settings">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('profile')">‹</button>
+      <div class="canvas-title">Settings</div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Experience</div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Reduced motion</div>
+            <div class="sub">Calmer transitions</div>
+          </div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Warm palette</div>
+            <div class="sub">Cream & terracotta tones</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Large text</div>
+            <div class="sub">Increase readability</div>
+          </div>
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications</div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Gentle reminders</div>
+            <div class="sub">Only when you're likely free</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Weekly reflection</div>
+            <div class="sub">A soft summary, Sunday mornings</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="settings-item">
+          <div class="left">
+            <div class="label">Milestone celebrations</div>
+            <div class="sub">A quiet cheer when you finish something</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">About</div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="left"><div class="label">Version</div></div>
+          <span style="font-size:13px;color:var(--ink-3)">1.0.0</span>
+        </div>
+        <div class="settings-item">
+          <div class="left"><div class="label">Privacy</div></div>
+          <span class="chev" style="color:var(--ink-4)">›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ALL MILESTONES ============ -->
+  <div class="screen" id="screen-milestones">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('profile')">‹</button>
+      <div class="canvas-title">Milestones</div>
+    </div>
+
+    <div class="search-chips">
+      <button class="search-chip active">All</button>
+      <button class="search-chip">Oil Painting</button>
+      <button class="search-chip">Guitar</button>
+      <button class="search-chip">Reading</button>
+      <button class="search-chip">Gardening</button>
+    </div>
+
+    <div class="timeline" id="allMilestones"></div>
+  </div>
+
+  <!-- ============ MILESTONE DETAIL ============ -->
+  <div class="screen" id="screen-milestone-detail">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('milestones')">‹</button>
+      <div class="canvas-title">Moment</div>
+      <div class="right-actions">
+        <button class="icon-btn" onclick="editMilestone()">✎</button>
+      </div>
+    </div>
+
+    <div class="milestone-detail-hero" id="mdHero" style="background: var(--terracotta)"></div>
+    <div class="milestone-detail-title" id="mdTitle">Finished "Harbor Light"</div>
+    <div class="milestone-detail-date">
+      <span id="mdDate">2 weeks ago</span>
+      <span class="dot"></span>
+      <span id="mdHobby">Oil Painting</span>
+    </div>
+
+    <div class="milestone-detail-notes" id="mdNotes">
+      Spent three evenings on the underpainting. Finally got the <em>harbor light</em> feeling right — that warm orange catching the boats. The new flat brushes made a huge difference.
+    </div>
+
+    <div class="tag-row" id="mdTags">
+      <span class="tag-chip">painting</span>
+      <span class="tag-chip">landscape</span>
+      <span class="tag-chip">first attempt</span>
+    </div>
+
+    <div class="action-row">
+      <button class="action-btn" onclick="showToast('Shared')">↗ Share</button>
+      <button class="action-btn" onclick="showToast('Saved to favorites')">♡ Favorite</button>
+      <button class="action-btn" onclick="deleteMilestone()">⌫ Delete</button>
+    </div>
+  </div>
+
+  <!-- ============ ADD/EDIT MILESTONE ============ -->
+  <div class="screen" id="screen-add-milestone">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('canvas')">‹</button>
+      <div class="canvas-title">New Milestone</div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Photo</div>
+      <div class="photo-drop" onclick="showToast('Photo picker opened')">
+        <div class="ico">📷</div>
+        <div class="txt">Add a photo</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Title</div>
+      <input class="form-input" placeholder="What did you finish?" value="Finished a wet-on-wet study" />
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Notes (optional)</div>
+      <textarea class="form-input" placeholder="Anything you want to remember…">The sky finally felt soft. Used the new round brush for the tree line.</textarea>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Feeling</div>
+      <div class="emoji-row">
+        <button class="emoji-choice selected">🌱</button>
+        <button class="emoji-choice">✨</button>
+        <button class="emoji-choice">🔥</button>
+        <button class="emoji-choice">😌</button>
+        <button class="emoji-choice">🎯</button>
+        <button class="emoji-choice">💭</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Hobby color</div>
+      <div class="color-row">
+        <button class="color-choice selected" style="background:var(--terracotta)"></button>
+        <button class="color-choice" style="background:var(--mustard)"></button>
+        <button class="color-choice" style="background:var(--sage)"></button>
+        <button class="color-choice" style="background:var(--blue-slate)"></button>
+        <button class="color-choice" style="background:var(--purple)"></button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveMilestone()">Save milestone</button>
+  </div>
+
+  <!-- ============ NOTIFICATIONS ============ -->
+  <div class="screen" id="screen-notifications">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('profile')">‹</button>
+      <div class="canvas-title">Activity</div>
+    </div>
+
+    <div class="notif-item unread" onclick="openMilestoneDetail()">
+      <div class="notif-icon" style="background:var(--sage-soft);color:var(--sage-deep)">🌱</div>
+      <div class="notif-body">
+        <div class="notif-title">A quiet nudge</div>
+        <div class="notif-text">You haven't visited Oil Painting in 5 days. No pressure — just saying hi.</div>
+        <div class="notif-time">2 hours ago</div>
+      </div>
+    </div>
+
+    <div class="notif-item unread">
+      <div class="notif-icon" style="background:#F5E8D0;color:var(--mustard)">✨</div>
+      <div class="notif-body">
+        <div class="notif-title">Milestone saved</div>
+        <div class="notif-text">"Finished Harbor Light" joined your Oil Painting timeline.</div>
+        <div class="notif-time">Yesterday</div>
+      </div>
+    </div>
+
+    <div class="notif-item">
+      <div class="notif-icon" style="background:#E0E8F0;color:var(--blue-slate)">📖</div>
+      <div class="notif-body">
+        <div class="notif-title">Reading streak kept</div>
+        <div class="notif-text">3 gentle moments this week. Nothing to keep up — just noticing.</div>
+        <div class="notif-time">3 days ago</div>
+      </div>
+    </div>
+
+    <div class="notif-item">
+      <div class="notif-icon" style="background:#EFE5F5;color:var(--purple)">🏺</div>
+      <div class="notif-body">
+        <div class="notif-title">Pottery is waiting</div>
+        <div class="notif-text">It's been quietly in your Someday Sandbox. Want to move it up?</div>
+        <div class="notif-time">1 week ago</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SEARCH ============ -->
+  <div class="screen" id="screen-search">
+    <div class="canvas-header">
+      <button class="back-btn" onclick="goTo('profile')">‹</button>
+      <div class="canvas-title">Search</div>
+    </div>
+
+    <div class="search-bar">
+      <span class="ico">🔍</span>
+      <input placeholder="Search hobbies, moments, inspiration…" />
+    </div>
+
+    <div class="search-chips">
+      <button class="search-chip active">All</button>
+      <button class="search-chip">Moments</button>
+      <button class="search-chip">Inspiration</button>
+      <button class="search-chip">Next steps</button>
+    </div>
+
+    <div class="settings-section-title">Recent</div>
+    <div class="menu-list">
+      <div class="menu-item" onclick="openMilestoneDetail()">
+        <div class="ico" style="background:var(--terracotta);color:white">🏆</div>
+        <div class="txt">
+          <div class="title">Harbor Light</div>
+          <div class="sub">Milestone · Oil Painting</div>
+        </div>
+      </div>
+      <div class="menu-item">
+        <div class="ico" style="background:var(--mustard);color:white">🔗</div>
+        <div class="txt">
+          <div class="title">Wet-on-wet tutorial</div>
+          <div class="sub">Inspiration · saved 2 days ago</div>
+        </div>
+      </div>
+      <div class="menu-item">
+        <div class="ico" style="background:var(--sage);color:white">🎯</div>
+        <div class="txt">
+          <div class="title">Practice F chord</div>
+          <div class="sub">Next step · Guitar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FILTER BANNER ============ -->
+  <div class="filter-banner" id="filterBanner">
+    <span id="filterBannerText">Showing: 15 min + Low</span>
+    <button onclick="resetFilter()">Reset</button>
+  </div>
+
+  <!-- ============ FAB ============ -->
+  <button class="fab" id="fab" onclick="openCapture()">+</button>
+
+  <!-- ============ TAB BAR ============ -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-item active" data-tab="hub" onclick="goTo('hub')">
+      <span class="ico">🏠</span>
+      <span class="lbl">Hub</span>
+    </button>
+    <button class="tab-item" data-tab="search" onclick="goTo('search')">
+      <span class="ico">🔍</span>
+      <span class="lbl">Search</span>
+    </button>
+    <button class="tab-item" data-tab="milestones" onclick="goTo('milestones')">
+      <span class="ico">🏆</span>
+      <span class="lbl">Moments</span>
+    </button>
+    <button class="tab-item" data-tab="profile" onclick="goTo('profile')">
+      <span class="ico">👤</span>
+      <span class="lbl">You</span>
+    </button>
+  </div>
+
+  <!-- ============ BACKDROP ============ -->
+  <div class="backdrop" id="backdrop" onclick="closeAllSheets()"></div>
+
+  <!-- ============ FILTER SHEET ============ -->
+  <div class="sheet" id="filterSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">What fits right now?</div>
+
+    <div class="filter-group">
+      <div class="filter-label">Time</div>
+      <div class="pill-row" id="timeRow">
+        <button class="pill" data-val="15 min">15 min</button>
+        <button class="pill" data-val="1 hr">1 hr</button>
+        <button class="pill" data-val="2+ hrs">2+ hrs</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Energy</div>
+      <div class="pill-row" id="energyRow">
+        <button class="pill" data-val="Low">Low</button>
+        <button class="pill" data-val="Steady">Steady</button>
+        <button class="pill" data-val="High focus">High focus</button>
+      </div>
+    </div>
+
+    <div id="fitResults" style="display:none">
+      <div class="fit-count" id="fitCount">3 things fit</div>
+      <div class="fit-list" id="fitList"></div>
+    </div>
+
+    <button class="btn-primary" id="showMeBtn" onclick="applyFilter()" disabled>Show me</button>
+  </div>
+
+  <!-- ============ CAPTURE SHEET ============ -->
+  <div class="sheet" id="captureSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Capture something</div>
+
+    <div class="capture-types" id="captureTypes">
+      <button class="capture-type" onclick="pickCaptureType(this, 'link')">
+        <span class="ico">🔗</span><span class="lbl">Link</span>
+      </button>
+      <button class="capture-type selected" onclick="pickCaptureType(this, 'idea')">
+        <span class="ico">✏️</span><span class="lbl">Idea</span>
+      </button>
+      <button class="capture-type" onclick="pickCaptureType(this, 'photo')">
+        <span class="ico">📷</span><span class="lbl">Photo</span>
+      </button>
+    </div>
+
+    <textarea class="capture-input" id="captureInput" placeholder="Try a wet-on-wet blending technique for the sky in the next piece"></textarea>
+
+    <div class="save-to-label">Save to</div>
+    <div class="save-to-chips" id="saveToChips"></div>
+
+    <button class="btn-primary" id="saveCaptureBtn" onclick="saveCapture()">Save to Oil Painting</button>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast">
+    <span id="toastText">Saved</span>
+    <button class="undo" onclick="undoSave()">Undo</button>
+  </div>
+</div>
+
+<div class="hint" style="position:fixed;bottom:8px;color:rgba(42,37,32,0.35)">TAP · EXPLORE</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const HOBBIES = {
+  oil:      { id:'oil',      name:'Oil Painting', icon:'🎨', color:'#B76C7A', section:'active', nextStep:'Block in the underpainting for "Autumn Study"', meta:'Next: block in the underpainting', badge:'🎨' },
+  guitar:   { id:'guitar',   name:'Guitar',       icon:'🎸', color:'#D89B4A', section:'active', nextStep:'Practice the F chord transition',              meta:'Last touched 3 days ago', badge:'🎵' },
+  reading:  { id:'reading',  name:'Reading',      icon:'📖', color:'#6B8AA8', section:'slow',   nextStep:'Read 10 pages of current book',                meta:'32% through' },
+  gardening:{ id:'gardening',name:'Gardening',    icon:'🌱', color:'#3E6B5C', section:'slow',   nextStep:'Water the balcony herbs',                      meta:'Balcony tomatoes' },
+  pottery:  { id:'pottery',  name:'Pottery',      icon:'🏺', color:'#8B7FB8', section:'backburner', nextStep:'Find a local studio', meta:'Someday' },
+  synth:    { id:'synth',    name:'Synth',        icon:'🎹', color:'#8B7FB8', section:'backburner', nextStep:'Learn one new patch', meta:'Someday' },
+};
+
+const ALL_MILESTONES = [
+  { id:'m1', hobby:'oil',      title:'Finished "Harbor Light"',       date:'2 weeks ago',  color:'#B76C7A', notes:'Spent three evenings on the underpainting. Finally got the harbor light feeling right — that warm orange catching the boats. The new flat brushes made a huge difference.', tags:['painting','landscape','first attempt'] },
+  { id:'m2', hobby:'oil',      title:'First underpainting attempt',   date:'5 weeks ago',  color:'#B76C7A', notes:'Nervous about blocking in, but the process felt more forgiving than I expected.', tags:['practice'] },
+  { id:'m3', hobby:'oil',      title:'Picked up 3 new brushes',       date:'2 months ago', color:'#D89B4A', notes:'Splurged on a set of flats. Worth it.', tags:['supplies'] },
+  { id:'m4', hobby:'guitar',   title:'Learned the F barre chord',     date:'1 week ago',   color:'#D89B4A', notes:'Finally clean. My hand still hurts, but it rings.', tags:['chords','progress'] },
+  { id:'m5', hobby:'reading',  title:'Finished "Piranesi"',           date:'3 weeks ago',  color:'#6B8AA8', notes:'A quiet, strange, beautiful book. Cried at the end.', tags:['fiction'] },
+  { id:'m6', hobby:'gardening',title:'First balcony tomato',          date:'1 month ago',  color:'#3E6B5C', notes:'One perfect cherry tomato. Ate it immediately.', tags:['harvest'] },
+];
+
+let currentHobby = null;
+let currentFilter = null;
+let selectedCaptureType = 'idea';
+let selectedCaptureHobby = 'oil';
+let activeMilestone = ALL_MILESTONES[0];
+let onboardStep = 0;
+
+const ONBOARD = [
+  { title:'A sandbox for your many interests', text:'Collect inspiration, capture progress, and choose what fits your energy — never a deadline in sight.' },
+  { title:'Pick what fits your energy today',  text:'Short on time? Low on focus? Filter the Hub to show only what\'s realistic right now.' },
+  { title:'Moments, not streaks',              text:'Progress is a collection, not a chain. No overdue states. No broken streaks. Just your story, quietly growing.' },
+];
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function goTo(screenKey) {
+  const screens = ['onboard','hub','canvas','profile','settings','milestones','milestone-detail','add-milestone','notifications','search'];
+  screens.forEach(k => {
+    const el = document.getElementById('screen-' + k);
+    if (el) el.classList.toggle('active', k === screenKey);
+  });
+
+  // Tab bar visibility
+  const tabBar = document.getElementById('tabBar');
+  const tabScreens = ['hub','search','milestones','profile'];
+  tabBar.classList.toggle('hidden', !tabScreens.includes(screenKey));
+
+  // Update active tab
+  document.querySelectorAll('.tab-item').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === screenKey);
+  });
+
+  // FAB visibility
+  document.getElementById('fab').style.display = (screenKey === 'hub') ? 'flex' : 'none';
+
+  // Scroll to top
+  const el = document.getElementById('screen-' + screenKey);
+  if (el) el.scrollTop = 0;
+}
+
+/* ============================================================
+   ONBOARDING
+   ============================================================ */
+function nextOnboard() {
+  onboardStep++;
+  if (onboardStep >= ONBOARD.length) {
+    goTo('hub');
+    return;
+  }
+  const step = ONBOARD[onboardStep];
+  document.getElementById('onboardTitle').textContent = step.title;
+  document.getElementById('onboardText').textContent = step.text;
+  document.querySelectorAll('.onboard-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === onboardStep);
+  });
+  const btn = document.getElementById('onboardBtn');
+  btn.textContent = onboardStep === ONBOARD.length - 1 ? 'Start exploring' : 'Continue';
+}
+
+/* ============================================================
+   HUB RENDER
+   ============================================================ */
+function renderHub() {
+  const active = Object.values(HOBBIES).filter(h => h.section === 'active');
+  const slow = Object.values(HOBBIES).filter(h => h.section === 'slow');
+  const back = Object.values(HOBBIES).filter(h => h.section === 'backburner');
+
+  document.getElementById('activeCount').textContent = active.length;
+  document.getElementById('slowCount').textContent = slow.length;
+  document.getElementById('backCount').textContent = back.length;
+
+  document.getElementById('activeList').innerHTML = active.map(activeCardHTML).join('');
+  document.getElementById('slowList').innerHTML = slow.map(slowCardHTML).join('');
+  document.getElementById('backList').innerHTML = back.map(chipHTML).join('');
+
+  document.querySelectorAll('.hobby-card').forEach(el => {
+    el.addEventListener('click', () => openCanvas(el.dataset.id));
+  });
+  document.querySelectorAll('.slow-card').forEach(el => {
+    el.addEventListener('click', () => openCanvas(el.dataset.id));
+  });
+  document.querySelectorAll('.backburner-chip').forEach(el => {
+    el.addEventListener('click', () => openCanvas(el.dataset.id));
+  });
+}
+
+function activeCardHTML(h) {
+  return `<div class="hobby-card" data-id="${h.id}" style="background:${h.color}">
+    <div class="badge">${h.badge}</div>
+    <div class="name">${h.name}</div>
+    <div class="meta">${h.meta}</div>
+  </div>`;
+}
+
+function slowCardHTML(h) {
+  return `<div class="slow-card" data-id="${h.id}" style="background:${h.color}">
+    <div class="name">${h.name}</div>
+    <div class="meta">${h.meta}</div>
+  </div>`;
+}
+
+function chipHTML(h) {
+  return `<div class="backburner-chip" data-id="${h.id}">${h.name}</div>`;
+}
+
+/* ============================================================
+   CANVAS
+   ============================================================ */
+function openCanvas(id) {
+  currentHobby = HOBBIES[id];
+  document.getElementById('canvasTitle').textContent = currentHobby.name;
+  renderCanvas(id);
+  goTo('canvas');
+}
+
+function renderCanvas(id) {
+  const h = HOBBIES[id];
+  const isOil = id === 'oil';
+
+  if (!isOil) {
+    document.getElementById('canvasBody').innerHTML = `
+      <div class="empty-hero">
+        <div class="empty-hero-title">This space is just getting started</div>
+        <div class="empty-hero-text">Add a reference, note a next step, or drop in inspiration whenever it strikes.</div>
+        <button class="btn-soft" onclick="openCapture()">Add something</button>
+      </div>
+
+      <div class="section-header"><div class="label">Inspiration</div></div>
+      <div class="empty-tiles">
+        <div class="empty-tile" onclick="openCapture()">+</div>
+        <div class="empty-tile" onclick="openCapture()">+</div>
+        <div class="empty-tile" onclick="openCapture()">+</div>
+      </div>
+
+      <div class="section-header"><div class="label">Milestones</div></div>
+      <div class="empty-milestone-text">Your first milestone will show up here.</div>
+    `;
+    return;
+  }
+
+  // Full oil painting canvas
+  document.getElementById('canvasBody').innerHTML = `
+    <div class="next-step-card">
+      <div class="next-step-label">Next step</div>
+      <div class="next-step-text">${h.nextStep}</div>
+      <button class="btn-done" onclick="completeMilestone()">Mark as done</button>
+    </div>
+
+    <div class="section-header">
+      <div class="label">Inspiration</div>
+      <button class="add" onclick="openCapture()">+</button>
+    </div>
+    <div class="inspiration-grid">
+      <div class="inspo-tile" style="background:#B76C7A"></div>
+      <div class="inspo-tile" style="background:#D89B4A">
+        <div class="tag">▶ Tutorial</div>
+      </div>
+      <div class="inspo-tile" style="background:#B76C7A"></div>
+      <div class="inspo-tile" style="background:#6B8AA8">
+        <div class="tag">P Pinterest</div>
+      </div>
+      <div class="inspo-tile" style="background:#B76C7A"></div>
+      <div class="inspo-tile add-tile" onclick="openCapture()">+</div>
+    </div>
+
+    <div class="section-header">
+      <div class="label">Milestones</div>
+      <button class="add" onclick="goTo('add-milestone')">+</button>
+    </div>
+    <div class="timeline">
+      <div class="milestone" onclick="openMilestoneDetail('m1')">
+        <div class="thumb" style="background:#B76C7A"></div>
+        <div class="info">
+          <div class="milestone-title">Finished "Harbor Light"</div>
+          <div class="milestone-date">2 weeks ago</div>
+        </div>
+      </div>
+      <div class="milestone" onclick="openMilestoneDetail('m2')">
+        <div class="thumb" style="background:#B76C7A"></div>
+        <div class="info">
+          <div class="milestone-title">First underpainting attempt</div>
+          <div class="milestone-date">5 weeks ago</div>
+        </div>
+      </div>
+      <div class="milestone" onclick="openMilestoneDetail('m3')">
+        <div class="thumb" style="background:#D89B4A"></div>
+        <div class="info">
+          <div class="milestone-title">Picked up 3 new brushes</div>
+          <div class="milestone-date">2 months ago</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function completeMilestone() {
+  const first = document.querySelector('#screen-canvas .milestone');
+  if (first) {
+    first.classList.add('saved');
+    setTimeout(() => first.classList.remove('saved'), 900);
+  }
+  showToast('Moment captured.');
+}
+
+function editCurrentHobby() {
+  showToast('Edit hobby coming soon');
+}
+
+/* ============================================================
+   MILESTONES
+   ============================================================ */
+function renderAllMilestones() {
+  document.getElementById('allMilestones').innerHTML = ALL_MILESTONES.map(m => `
+    <div class="milestone" onclick="openMilestoneDetail('${m.id}')">
+      <div class="thumb" style="background:${m.color}"></div>
+      <div class="info">
+        <div class="milestone-title">${m.title}</div>
+        <div class="milestone-date">${m.date} · ${HOBBIES[m.hobby].name}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openMilestoneDetail(id) {
+  const m = ALL_MILESTONES.find(x => x.id === id) || ALL_MILESTONES[0];
+  activeMilestone = m;
+  document.getElementById('mdHero').style.background = m.color;
+  document.getElementById('mdTitle').textContent = m.title;
+  document.getElementById('mdDate').textContent = m.date;
+  document.getElementById('mdHobby').textContent = HOBBIES[m.hobby].name;
+  document.getElementById('mdNotes').textContent = m.notes;
+  document.getElementById('mdTags').innerHTML = m.tags.map(t => `<span class="tag-chip">${t}</span>`).join('');
+  goTo('milestone-detail');
+}
+
+function editMilestone() {
+  goTo('add-milestone');
+}
+
+function deleteMilestone() {
+  showToast('Milestone deleted');
+  setTimeout(() => goTo('milestones'), 400);
+}
+
+function saveMilestone() {
+  showToast('Milestone saved');
+  setTimeout(() => goTo('canvas'), 600);
+}
+
+/* ============================================================
+   ENERGY FILTER
+   ============================================================ */
+function openFilter() {
+  document.getElementById('backdrop').classList.add('show');
+  document.getElementById('filterSheet').classList.add('show');
+}
+
+function applyFilter() {
+  const time = document.querySelector('#timeRow .pill.selected')?.dataset.val;
+  const energy = document.querySelector('#energyRow .pill.selected')?.dataset.val;
+  if (!time || !energy) return;
+  currentFilter = { time, energy };
+  closeAllSheets();
+  document.getElementById('filterBannerText').textContent = `Showing: ${time} + ${energy}`;
+  document.getElementById('filterBanner').classList.add('show');
+  applyFilterVisuals();
+}
+
+function resetFilter() {
+  currentFilter = null;
+  document.getElementById('filterBanner').classList.remove('show');
+  applyFilterVisuals();
+  document.querySelectorAll('#timeRow .pill, #energyRow .pill').forEach(p => p.classList.remove('selected'));
+  document.getElementById('showMeBtn').disabled = true;
+  document.getElementById('fitResults').style.display = 'none';
+}
+
+function applyFilterVisuals() {
+  const cards = document.querySelectorAll('.hobby-card, .slow-card');
+  if (!currentFilter) {
+    cards.forEach(c => c.classList.remove('dimmed', 'glow'));
+    return;
+  }
+  cards.forEach(c => {
+    const id = c.dataset.id;
+    let match = false;
+    const { energy } = currentFilter;
+    if (energy === 'Low' && ['reading', 'oil'].includes(id)) match = true;
+    if (energy === 'High focus' && ['guitar', 'synth', 'oil'].includes(id)) match = true;
+    if (energy === 'Steady' && ['oil', 'reading'].includes(id)) match = true;
+    c.classList.toggle('dimmed', !match);
+    c.classList.toggle('glow', match);
+  });
+}
+
+document.querySelectorAll('#timeRow .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#timeRow .pill').forEach(x => x.classList.remove('selected'));
+    p.classList.add('selected');
+    updateFitPreview();
+    checkFilterReady();
+  });
+});
+document.querySelectorAll('#energyRow .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#energyRow .pill').forEach(x => x.classList.remove('selected'));
+    p.classList.add('selected');
+    updateFitPreview();
+    checkFilterReady();
+  });
+});
+
+function updateFitPreview() {
+  const time = document.querySelector('#timeRow .pill.selected')?.dataset.val;
+  const energy = document.querySelector('#energyRow .pill.selected')?.dataset.val;
+  const results = document.getElementById('fitResults');
+  if (!time || !energy) { results.style.display = 'none'; return; }
+
+  let items = [];
+  if (energy === 'Low') {
+    items = [
+      { text:'Read a chapter of your current book', color:'#6B8AA8' },
+      { text:'Organize painting references', color:'#B76C7A' },
+      { text:'Tune the guitar, no pressure to play', color:'#D89B4A' },
+    ];
+  } else if (energy === 'Steady') {
+    items = [
+      { text:'Continue blending study', color:'#B76C7A' },
+      { text:'Read 10 pages', color:'#6B8AA8' },
+    ];
+  } else {
+    items = [
+      { text:'Record a new riff', color:'#D89B4A' },
+      { text:'Build a new synth patch', color:'#8B7FB8' },
+      { text:'Start a fresh underpainting', color:'#B76C7A' },
+    ];
+  }
+
+  document.getElementById('fitCount').textContent = `${items.length} thing${items.length > 1 ? 's' : ''} fit`;
+  document.getElementById('fitList').innerHTML = items.map(i => `
+    <button class="fit-item">
+      <span class="dot" style="background:${i.color}"></span>
+      <span>${i.text}</span>
+    </button>
+  `).join('');
+  results.style.display = 'block';
+}
+
+function checkFilterReady() {
+  const t = document.querySelector('#timeRow .pill.selected');
+  const e = document.querySelector('#energyRow .pill.selected');
+  document.getElementById('showMeBtn').disabled = !(t && e);
+}
+
+/* ============================================================
+   CAPTURE
+   ============================================================ */
+function openCapture() {
+  document.getElementById('backdrop').classList.add('show');
+  document.getElementById('captureSheet').classList.add('show');
+  renderSaveChips();
+  document.getElementById('captureInput').value = '';
+  document.querySelectorAll('.capture-type').forEach((el, i) => {
+    el.classList.toggle('selected', i === 1);
+  });
+  selectedCaptureType = 'idea';
+}
+
+function renderSaveChips() {
+  const chips = Object.values(HOBBIES).filter(h => h.section !== 'backburner').map(h => `
+    <button class="save-chip ${h.id === selectedCaptureHobby ? 'selected' : ''}" data-id="${h.id}" onclick="pickSaveHobby('${h.id}')">
+      <span class="dot" style="background:${h.color}"></span>
+      ${h.name}
+    </button>
+  `).join('');
+  document.getElementById('saveToChips').innerHTML = chips;
+  updateSaveBtn();
+}
+
+function pickSaveHobby(id) {
+  selectedCaptureHobby = id;
+  renderSaveChips();
+}
+
+function updateSaveBtn() {
+  const h = HOBBIES[selectedCaptureHobby];
+  document.getElementById('saveCaptureBtn').textContent = `Save to ${h.name}`;
+}
+
+function pickCaptureType(el, type) {
+  selectedCaptureType = type;
+  document.querySelectorAll('.capture-type').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  const input = document.getElementById('captureInput');
+  if (type === 'link') input.placeholder = 'Paste a URL…';
+  if (type === 'idea') input.placeholder = 'Try a wet-on-wet blending technique for the sky in the next piece';
+  if (type === 'photo') input.placeholder = 'Add a caption (optional)…';
+}
+
+function saveCapture() {
+  const h = HOBBIES[selectedCaptureHobby];
+  closeAllSheets();
+  showToast(`Saved to ${h.name}`);
+}
+
+function undoSave() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+function editProfile() {
+  showToast('Profile editor coming soon');
+}
+
+/* ============================================================
+   SHARED
+   ============================================================ */
+function closeAllSheets() {
+  document.getElementById('backdrop').classList.remove('show');
+  document.getElementById('filterSheet').classList.remove('show');
+  document.getElementById('captureSheet').classList.remove('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderHub();
+renderAllMilestones();
+
+// Start with onboarding on first load
+goTo('onboard');
+</script>
+</body>
+</html>
